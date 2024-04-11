@@ -33,8 +33,8 @@ struct Shell: ~Copyable {
         process.standardError = errorPipe
         process.environment = environment
         process.launchPath = environment["SHELL"] ?? "/bin/zsh"
-        process.arguments = ["-c", command.value]
-        
+        process.arguments = ["-c", "\(ShellCommand.pipefail) \(command.value)"]
+
         let (stream, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         outputPipe.fileHandleForReading.readabilityHandler = { handle in
             continuation.yield(
@@ -70,6 +70,12 @@ struct Shell: ~Copyable {
         try await run().reduce("", +)
     }
 }
+
+func shell(_ command: ShellCommand, environment: [String: String] = [:]) async throws -> String {
+    try await Shell(command, environment: environment).run()
+}
+
+// MARK: - ShellCommand
 
 struct ShellCommand: LosslessStringConvertible {
     var value: String
@@ -121,7 +127,8 @@ extension ShellCommand: ExpressibleByStringInterpolation {
     }
 }
 
-func shell(_ command: ShellCommand, environment: [String: String] = [:]) async throws -> String {
-    try await Shell(command, environment: environment).run()
+extension ShellCommand {
+    static var pipefail: Self {
+        "set -e; set -o pipefail;"
+    }
 }
-
