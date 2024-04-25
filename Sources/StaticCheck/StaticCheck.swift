@@ -18,7 +18,8 @@ struct StaticCheck: AsyncParsableCommand {
         let extractor = BinarySymbolExtractor()
         do {
             let data = try await extractor.extract(from: main)
-            print(data)
+            let report = StaticCheckReport.generate(from: .init(extractedData: data))
+            report.printReport()
         } catch {
             throw error
         }
