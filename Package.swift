@@ -7,7 +7,7 @@ let package = Package(
     platforms: [.macOS(.v13)],
     products: [
         .executable(
-            name: "swift-dependencies-static-check",
+            name: "static-check",
             targets: ["StaticCheck"]
         )
     ],

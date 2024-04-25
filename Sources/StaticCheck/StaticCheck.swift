@@ -24,10 +24,12 @@ struct StaticCheck: AsyncParsableCommand {
 
     @Option var format: Format = .string
 
+    @Argument(completion: .file(), transform: { URL.init(filePath: $0) }) var binaryPath: URL
+
     func run() async throws {
         let main = Binary(
             id: .main,
-            url: URL(filePath: "")
+            url: binaryPath
         )
         let extractor = BinarySymbolExtractor()
         do {
