@@ -71,15 +71,6 @@ extension StaticCheckReport {
             ].sorted { $0.binary.sort < $1.binary.sort }
         )
     }
-
-    func printReport() {
-        for binary in binaries {
-            print("\(ResultSymbol(binary.isSuccess)) \(binary.validCount)/\(binary.conformances.count) for \(binary.binary.name) at \(binary.binary.url.filePath)")
-            for report in binary.conformances {
-                print("\t\(ResultSymbol(report.conformance.isSuccess)) \(report.symbol)")
-            }
-        }
-    }
 }
 
 enum ResultSymbol: String, CustomStringConvertible {
@@ -97,5 +88,58 @@ enum ResultSymbol: String, CustomStringConvertible {
         } else {
             self = .failure
         }
+    }
+}
+
+extension StaticCheckReport {
+    struct StringFormatStyle: FormatStyle {
+        func format(_ value: StaticCheckReport) -> String {
+            value.binaries.map { binary in
+                (
+                    [
+                        "\(ResultSymbol(binary.isSuccess)) \(binary.validCount)/\(binary.conformances.count) for \(binary.binary.name) at \(binary.binary.url.filePath)"
+                    ]
+                    + binary.conformances.map { report in
+                        "\t\(ResultSymbol(report.conformance.isSuccess)) \(report.symbol)"
+                    }
+                ).joined(separator: "\n")
+            }
+            .joined(separator: "\n")
+        }
+    }
+
+    struct MarkdownFormatStyle: FormatStyle {
+        func format(_ value: StaticCheckReport) -> String {
+            value.binaries.map { binary in
+                (
+                    [
+                        "### \(ResultSymbol(binary.isSuccess)) \(binary.binary.name) (\(binary.validCount)/\(binary.conformances.count))",
+                        "",
+                        "| Status | Dependency |",
+                        "|---|---|"
+                    ]
+                    + binary.conformances.map { report in
+                        "| \(ResultSymbol(report.conformance.isSuccess)) | \(report.symbol) |"
+                    }
+                ).joined(separator: "\n")
+            }
+            .joined(separator: "\n")
+        }
+    }
+
+    func formatted<Style: FormatStyle>(_ style: Style) -> Style.FormatOutput where Style.FormatInput == StaticCheckReport {
+        style.format(self)
+    }
+}
+
+extension FormatStyle where Self == StaticCheckReport.StringFormatStyle  {
+    static var string: Self {
+        .init()
+    }
+}
+
+extension FormatStyle where Self == StaticCheckReport.MarkdownFormatStyle  {
+    static var markdown: Self {
+        .init()
     }
 }
