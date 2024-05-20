@@ -143,3 +143,9 @@ extension FormatStyle where Self == StaticCheckReport.MarkdownFormatStyle  {
         .init()
     }
 }
+
+extension URL {
+    var filePath: String {
+        path(percentEncoded: false)
+    }
+}
